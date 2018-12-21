@@ -2,29 +2,44 @@
 
 int ltoa(long num, char* chars);
 int dtoa(double num, char* chars);
+void testltoa(long l);
+void testdtoa(double d);
 
 int main() {
-    char* out = new char[256];
-
-    long i = 0xFFFFFFFFFF000000L;
-    double d = 100.12;
-    
-    int length = ltoa(i, out);
-    std::cout << "length: " << length << std::endl;
-    out[length] = 0;
-
-    std::cout << "long" << std::endl;
-    std::cout << "std: " <<  i << std::endl;
-    std::cout << "me:  " << out << std::endl;
-
-    length =  dtoa(d, out);
-    out[length] = 0;
-
-    std::cout << std::endl;
-    std::cout << "double" << std::endl;
-    std::cout << "std: " <<  d << std::endl;
-    std::cout << "me:  " << out << std::endl;
+    testltoa(123456789123456789);
+    testltoa(0x8000000000000000);
 }
+
+int lengthOfLong(unsigned long num) {
+    static const unsigned long magnitudes[] = {
+        10L, //1
+        100L, //2
+        10000L, //4
+        100000000L, //8
+    };
+
+    int length = 1;
+    unsigned long pow10 = 1;
+
+    int i = 3;
+    do {
+        unsigned long temp = pow10 * magnitudes[i];
+        if (temp <= num) {
+            pow10 = temp;
+            length += 1 << i;
+
+            if (i == 2 && length == 13) {
+                //check 10000L twice
+                continue;
+            }
+        }
+
+        --i;
+    } while (i >= 0);
+
+    return length;
+}
+
 
 int ltoa(long num, char* chars) {
     unsigned long number;
@@ -38,18 +53,12 @@ int ltoa(long num, char* chars) {
         number = num;
     }
     
-    unsigned long mag = 1;
-    do {
-        mag *= 10;
-        ++length;
-    } while (mag <= number);
+    length += lengthOfLong(number);
 
     char *p = chars + length - 1;
     do {
-        unsigned long temp = number / 10;
-        *p = '0' + (number - temp * 10);
-        --p;
-        number = temp;
+        *p-- = '0' + number % 10;
+        number /= 10;
     } while (number != 0);
 
     return length;
@@ -57,4 +66,35 @@ int ltoa(long num, char* chars) {
 
 int dtoa(double num, char* chars) {
     return 0;
+}
+
+
+
+
+void testltoa(long l) {
+    char* out = new char[256];
+    
+    int length = ltoa(l, out);
+    std::cout << "length: " << length << std::endl;
+    out[length] = 0;
+
+    std::cout << "long" << std::endl;
+    std::cout << "std: " <<  l << std::endl;
+    std::cout << "me:  " << out << std::endl;
+
+    delete[] out;
+}
+
+void testdtoa(double d) {
+    char* out = new char[256];
+
+    int length =  dtoa(d, out);
+    out[length] = 0;
+
+    std::cout << std::endl;
+    std::cout << "double" << std::endl;
+    std::cout << "std: " <<  d << std::endl;
+    std::cout << "me:  " << out << std::endl;
+
+    delete[] out;
 }
