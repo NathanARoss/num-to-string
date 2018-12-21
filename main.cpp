@@ -1,4 +1,5 @@
 #include <iostream>
+#include <math.h> //used just for INFINITY and NAN
 
 int ltoa(long num, char* chars);
 int dtoa(double num, char* chars);
@@ -6,8 +7,16 @@ void testltoa(long l);
 void testdtoa(double d);
 
 int main() {
-    testltoa(123456789123456789);
-    testltoa(0x8000000000000000);
+    //testltoa(123456789123456789);
+    //testltoa(0x8000000000000000);
+
+    testdtoa(INFINITY);
+    testdtoa(-INFINITY);
+    testdtoa(NAN);
+    testdtoa(0.0);
+    testdtoa(-0.0);
+    testdtoa(1.0);
+    testdtoa(3.14159);
 }
 
 int lengthOfLong(unsigned long num) {
@@ -64,8 +73,65 @@ int ltoa(long num, char* chars) {
     return length;
 }
 
+
+
 int dtoa(double num, char* chars) {
-    return 0;
+    if (num != num) {
+        chars[0] = 'n';
+        chars[1] = 'a';
+        chars[2] = 'n';
+        return 3;
+    }
+    if (num == INFINITY) {
+        chars[0] = 'i';
+        chars[1] = 'n';
+        chars[2] = 'f';
+        return 3;
+    }
+    if (num == -INFINITY) {
+        chars[0] = '-';
+        chars[1] = 'i';
+        chars[2] = 'n';
+        chars[3] = 'f';
+        return 4;
+    }
+
+    unsigned long bits = *reinterpret_cast<unsigned long*>(&num);
+    if (bits == 0) {
+        chars[0] = '0';
+        return 1;
+    }
+    if (bits == 0x8000000000000000) {
+        chars[0] = '-';
+        chars[1] = '0';
+        return 2;
+    }
+
+    int length = 0;
+    if (bits & 0x8000000000000000 != 0) {
+        chars[0] = '-';
+        ++length;
+    }
+
+    unsigned exponent = ((bits & 0x7FF0000000000000) >> 52) - 1023;
+    unsigned fraction = bits & 0x000FFFFFFFFFFFFF;
+
+    //TODO
+    chars[length++] = '1';
+    chars[length++] = '.';
+    for (int i = 51; i >= 0; --i) {
+        chars[length + i] = '0' + ((fraction >> i) & 1);
+    }
+    length += 52;
+
+    chars[length++] = ' ';
+    chars[length++] = '*';
+    chars[length++] = ' ';
+    chars[length++] = '2';
+    chars[length++] = '^';
+    length += ltoa(exponent, chars + length);     
+
+    return length;
 }
 
 
@@ -90,11 +156,9 @@ void testdtoa(double d) {
 
     int length =  dtoa(d, out);
     out[length] = 0;
-
-    std::cout << std::endl;
-    std::cout << "double" << std::endl;
     std::cout << "std: " <<  d << std::endl;
     std::cout << "me:  " << out << std::endl;
+    std::cout << std::endl;
 
     delete[] out;
 }
