@@ -6,7 +6,8 @@ int ltoa(long num, char* chars);
 int dtoa(double num, char* chars);
 void testltoa(long l);
 void testdtoa();
-double getWholeDigits(int exponent);
+double getMagnitude(int exponent);
+void printDoubleComponents(double f);
 
 int main() {
     //testltoa(123456789123456789);
@@ -69,12 +70,13 @@ int ltoa(long num, char* chars) {
     return length;
 }
 
-double getWholeDigits(int exponent) {
+double getMagnitude(int exponent) {
     double result = 1.0;
     double base = 10.0;
 
     if (exponent < 0) {
-        return 1.0;
+        base = 0.1;
+        exponent = -exponent;
     }
 
     for (;;)
@@ -134,24 +136,22 @@ int dtoa(double num, char* chars) {
     int exponent = ((bits & 0x7FF0000000000000) >> 52) - 1023;
     unsigned long fraction = (bits & 0x000FFFFFFFFFFFFF) | 0x0070000000000000;
 
-    int order = ((double)exponent * log10(2.0));
-    double magnitude = getWholeDigits(order);
-    std::cout << num << " is 2^" << exponent << " mangitude " << magnitude;
+    int order = ceil(exponent * log10(2.0));
+    double magnitude = getMagnitude(order);
 
-    if (magnitude * 10.0 <= num) {
-        magnitude *= 10.0;
-        ++order;
-        std::cout << "++";
+    if (magnitude > num) {
+        magnitude *= 0.1;
+        --order;
     }
     
-    std::cout << std::endl;
+    // std::cout << num << " is 2^" << exponent << " mangitude " << magnitude << std::endl;
 
-    // for (; order > 0; --order) {
-    //     double digit = floor(num / magnitude);
-    //     chars[length++] = (char)digit + '0';
-    //     num -= digit * magnitude;
-    //     magnitude *= 0.1;
-    // }
+    for (; order >= 0; --order) {
+        double digit = floor(num / magnitude);
+        num -= digit * magnitude;
+        chars[length++] = (char)digit + '0';
+        magnitude *= 0.1;
+    }
 
 
     return length;
@@ -176,24 +176,32 @@ void testltoa(long l) {
 
 void testdtoa() {
     char* out = new char[256];
-    double tests[] = {0.0, 1.0, 2.0, 10.0, 11.0, 125.0, 11123456.0, 100000000000.0};
+    double tests[] = {1.0, 1.1, 1.01, 1.001, 1.0001, 1.00001, 1.123456};
 
-    for (double d = 1e-308; d <= 1e308; d *= 10.0) {
+    for (double d : tests) {
         int length =  dtoa(d, out);
         out[length] = 0;
-        //std::cout << "std: " << std::fixed << std::left << std::setw(20) << d << "me:  " << out << std::endl;
+        std::cout << "std: " << std::fixed << std::left << std::setw(16) << d << "me: " << out << std::endl;
     }
 
     delete[] out;
 }
 
 void printDoubleComponents(double f) {
+    std::cout << std::left << std::setw(20) << f;
+
     unsigned long bits = *reinterpret_cast<unsigned long*>(&f);
 
     bool sign = bits >> 63;
-    unsigned long exponent = (bits & 0x7FF0000000000000) >> 52;
+    std::cout << (sign ? "-" : "");
+
     unsigned long fraction = bits & 0x000FFFFFFFFFFFFF;
-
-
-    std::cout << (sign ? "-" : "") << fraction << " * 2^" << exponent << std::endl;
+    std::cout << "1.";
+    for (int i = 0; i < 52; ++i) {
+        char digit = ((fraction >> i) & 1) + '0';
+        std::cout << digit;
+    }
+ 
+    int exponent = ((bits & 0x7FF0000000000000) >> 52) - 1023;
+    std::cout << " * 2^" << exponent << std::endl;
 }
