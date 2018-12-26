@@ -1,6 +1,7 @@
 #include <iostream>
 #include <iomanip>
 #include <math.h> //used just for INFINITY and NAN
+#include <cstring>
 
 int ltoa(long num, char* chars);
 int dtoa(double num, char* chars);
@@ -96,22 +97,15 @@ double getMagnitude(int exponent) {
 
 int dtoa(double num, char* chars) {
     if (num != num) {
-        chars[0] = 'n';
-        chars[1] = 'a';
-        chars[2] = 'n';
+        strcpy(chars, "nan");
         return 3;
     }
     if (num == INFINITY) {
-        chars[0] = 'i';
-        chars[1] = 'n';
-        chars[2] = 'f';
+        strcpy(chars, "inf");
         return 3;
     }
     if (num == -INFINITY) {
-        chars[0] = '-';
-        chars[1] = 'i';
-        chars[2] = 'n';
-        chars[3] = 'f';
+        strcpy(chars, "-inf");
         return 4;
     }
 
@@ -121,8 +115,7 @@ int dtoa(double num, char* chars) {
         return 1;
     }
     if (bits == 0x8000000000000000) {
-        chars[0] = '-';
-        chars[1] = '0';
+        strcpy(chars, "-0");
         return 2;
     }
 
@@ -176,7 +169,8 @@ void testltoa(long l) {
 
 void testdtoa() {
     char* out = new char[256];
-    double tests[] = {1.0, 1.1, 1.01, 1.001, 1.0001, 1.00001, 1.123456};
+    // double tests[] = {1.0, 1.1, 1.01, 1.001, 1.0001, 1.00001, 1.123456};
+    double tests[] = {0.0, -0.0, INFINITY, -INFINITY, NAN};
 
     for (double d : tests) {
         int length =  dtoa(d, out);
