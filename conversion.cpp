@@ -119,29 +119,26 @@ int dtoa(double num, char* chars) {
     int order = ceil(exponent * log10(2.0));
     double magnitude = getMagnitude(order);
 
+    bool fixed = false;
     if (magnitude > num) {
-        magnitude *= 0.1;
+        magnitude /= 10.0;
         --order;
+        fixed = true;
     }
     
-    int realOrder = (int)log10(num);
-    if (order != realOrder) {
-        std::cout << "order estimation failed. " << order << " != " << realOrder << std::endl;
+    if (order != floor(log10(num))) {
+        std::cout << "order estimation failed. log10(" << num << ") != " << order << " fixed: " << (fixed ? "true" : "false") << std::endl;
+        // std::cout << num << " > " << magnitude << std::endl;
     }
 
     // std::cout << num << " is 2^" << exponent << " mangitude " << magnitude << std::endl;
 
-    // for (; order >= 0; --order) {
-    //     double digit = floor(num / magnitude);
-    //     num -= digit * magnitude;
-    //     chars[length++] = (char)digit + '0';
-    //     magnitude *= 0.1;
-    // }
-
-    strcpy(chars, "1e");
-    length += 2;
-    length += ltoa(order, chars + 2);
-
+    for (; order >= 0; --order) {
+        double digit = floor(num / magnitude);
+        num -= digit * magnitude;
+        chars[length++] = (char)digit + '0';
+        magnitude *= 0.1;
+    }
 
     return length;
 }

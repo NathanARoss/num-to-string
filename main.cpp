@@ -71,7 +71,7 @@ void printDoubleComponents(double f) {
 void testMagnitudes() {
     char* out = new char[256];
 
-    for (double d = 1e308; d >= 1e-308; d *= 0.1) {
+    for (double d = 1e308; d >= 1e-308; d *= 0.05) {
         int length =  dtoa(d, out);
         out[length] = 0;
         //std::cout << "std: " << std::left << std::setw(20) << d << "me: " << out << std::endl;
