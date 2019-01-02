@@ -127,11 +127,10 @@ int dtoa(double num, char* chars) {
         return 0;
     }
 
-    for (; power >= 0; --power) {
-        double digit = floor(num / magnitude);
-        num -= digit * magnitude;
+    for (num /= magnitude; num != 0; num *= 10.0) {
+        double digit = floor(num);
+        num -= digit;
         chars[length++] = (char)digit + '0';
-        magnitude *= 0.1;
     }
 
     return length;

@@ -15,8 +15,8 @@ int main() {
     //testltoa(123456789123456789);
     //testltoa(0x8000000000000000);
 
-    // testdtoa();
-    testMagnitudes();
+    testdtoa();
+    // testMagnitudes();
 }
 
 
