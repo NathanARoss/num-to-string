@@ -1,8 +1,30 @@
 #include <math.h> //used just for INFINITY and NAN
 #include <cstring>
 
-#include "conversion.h"
 #include <iostream>
+#include <iomanip>
+#include "conversion.h"
+
+void printDoubleComponents(double f) {
+    std::cout << std::left << std::setw(20) << f;
+
+    unsigned long bits = *reinterpret_cast<unsigned long*>(&f);
+
+    bool sign = bits >> 63;
+    std::cout << (sign ? "-" : "");
+
+    unsigned long fraction = bits & 0x000FFFFFFFFFFFFF;
+    std::cout << "1.";
+    for (int i = 0; i < 52; ++i) {
+        char digit = ((fraction >> i) & 1) + '0';
+        std::cout << digit;
+    }
+ 
+    int exponent = ((bits & 0x7FF0000000000000) >> 52) - 1023;
+    std::cout << " * 2^" << exponent << std::endl;
+}
+
+
 
 int lengthOfLong(unsigned long num) {
     static const unsigned long magnitudes[] = {
@@ -58,30 +80,6 @@ int ltoa(long num, char* chars) {
     return length;
 }
 
-double getMagnitude(int exponent) {
-    double result = 1.0;
-    double base = 10.0;
-
-    if (exponent < 0) {
-        base = 0.1;
-        exponent = -exponent;
-    }
-
-    for (;;)
-    {
-        if (exponent & 1) {
-            result *= base;
-        }
-        exponent >>= 1;
-        if (exponent == 0) {
-            break;
-        }
-        base *= base;
-    }
-
-    return result;
-}
-
 int dtoa(double num, char* chars) {
     if (num != num) {
         strcpy(chars, "nan");
@@ -114,26 +112,22 @@ int dtoa(double num, char* chars) {
     }
 
     int exponent = ((bits & 0x7FF0000000000000) >> 52) - 1023;
-    unsigned long fraction = (bits & 0x000FFFFFFFFFFFFF) | 0x0070000000000000;
+    // unsigned long fraction = (bits & 0x000FFFFFFFFFFFFF) | 0x0070000000000000;
 
-    int order = ceil(exponent * log10(2.0));
-    double magnitude = getMagnitude(order);
+    int power = ceil(exponent * log10(2.0));
+    double magnitude = pow(10.0, power); //powers of 10 will be cached when I implement this in Wasm
 
-    bool fixed = false;
     if (magnitude > num) {
         magnitude /= 10.0;
-        --order;
-        fixed = true;
+        --power;
     }
     
-    if (order != floor(log10(num))) {
-        std::cout << "order estimation failed. log10(" << num << ") != " << order << " fixed: " << (fixed ? "true" : "false") << std::endl;
-        // std::cout << num << " > " << magnitude << std::endl;
+    if (power != floor(log10(num))) {
+        std::cout << "power estimation failed. log10(" << num << ") != " << power << std::endl;
+        return 0;
     }
 
-    // std::cout << num << " is 2^" << exponent << " mangitude " << magnitude << std::endl;
-
-    for (; order >= 0; --order) {
+    for (; power >= 0; --power) {
         double digit = floor(num / magnitude);
         num -= digit * magnitude;
         chars[length++] = (char)digit + '0';

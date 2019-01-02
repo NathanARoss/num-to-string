@@ -1,5 +1,7 @@
 #include <iostream>
 #include <iomanip>
+#include <math.h>
+#include <limits>
 
 #include "conversion.h"
 
@@ -48,33 +50,11 @@ void testdtoa() {
 }
 
 
-void printDoubleComponents(double f) {
-    std::cout << std::left << std::setw(20) << f;
-
-    unsigned long bits = *reinterpret_cast<unsigned long*>(&f);
-
-    bool sign = bits >> 63;
-    std::cout << (sign ? "-" : "");
-
-    unsigned long fraction = bits & 0x000FFFFFFFFFFFFF;
-    std::cout << "1.";
-    for (int i = 0; i < 52; ++i) {
-        char digit = ((fraction >> i) & 1) + '0';
-        std::cout << digit;
-    }
- 
-    int exponent = ((bits & 0x7FF0000000000000) >> 52) - 1023;
-    std::cout << " * 2^" << exponent << std::endl;
-}
-
-
 void testMagnitudes() {
     char* out = new char[256];
 
-    for (double d = 1e308; d >= 1e-308; d *= 0.05) {
-        int length =  dtoa(d, out);
-        out[length] = 0;
-        //std::cout << "std: " << std::left << std::setw(20) << d << "me: " << out << std::endl;
+    for (double d = std::numeric_limits<double>::max(); d >= std::numeric_limits<double>::min(); d *= 0.9999) {
+        dtoa(d, out);
     }
 
     delete[] out;
