@@ -111,14 +111,9 @@ int dtoa(double num, char* chars) {
         num = -num;
     }
 
-    int exponent = ((bits & 0x7FF0000000000000) >> 52) - 1023;
-    // unsigned long fraction = (bits & 0x000FFFFFFFFFFFFF) | 0x0070000000000000;
-
-    int power = ceil(exponent * log10(2.0));
-    double magnitude = pow(10.0, power); //powers of 10 will be cached when I implement this in Wasm
-
-    if (magnitude > num) {
-        magnitude /= 10.0;
+    int floor_log2 = ((bits & 0x7FF0000000000000) >> 52) - 1023;
+    int power = ceil(floor_log2 * log10(2.0));
+    if (pow(10.0, power) > num) {
         --power;
     }
     
@@ -127,10 +122,19 @@ int dtoa(double num, char* chars) {
         return 0;
     }
 
-    for (num /= magnitude; num != 0; num *= 10.0) {
+    const double scale = pow(10.0, -power);
+
+    double before = std::nextafter(num * scale, -INFINITY);
+    num = std::nextafter(num * scale, INFINITY);
+    double epsilon = num - before;
+
+    while (num > epsilon) {
         double digit = floor(num);
         num -= digit;
         chars[length++] = (char)digit + '0';
+
+        num *= 10.0;
+        epsilon *= 10.0;
     }
 
     return length;

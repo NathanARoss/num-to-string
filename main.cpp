@@ -37,13 +37,13 @@ void testltoa(long l) {
 
 void testdtoa() {
     char* out = new char[256];
-    double tests[] = {1.0, 1.1, 1.01, 1.001, 1.0001, 1.00001, 1.123456};
-    //double tests[] = {0.0, -0.0, INFINITY, -INFINITY, NAN};
+    double tests[] = {1.0, 1.1, 1.01, 1.001, 1.0001, 1.123456, 9.99};
+    // double tests[] = {0.0, -0.0, INFINITY, -INFINITY, NAN};
 
-    for (double d : tests) {
-        int length =  dtoa(d, out);
+    for (double d = 0; d <= 1000.0; d += 1.0) {
+        int length =  dtoa(d / 1000.0, out);
         out[length] = 0;
-        std::cout << "std: " << std::left << std::setw(20) << d << "me: " << out << std::endl;
+        std::cout << "std: " << std::left << std::setw(12) << d << "me : " << out << std::endl;
     }
 
     delete[] out;
