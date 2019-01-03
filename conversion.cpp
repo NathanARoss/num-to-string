@@ -80,15 +80,17 @@ int ltoa(char* chars, long num) {
     return length;
 }
 
-int dtoa(char* chars, double num) {
+int dtoa(char* chars, double num, int requestedDigits) {
     char* c = chars;
-    unsigned long bits = *reinterpret_cast<unsigned long*>(&num);
+    const unsigned long bits = *reinterpret_cast<long*>(&num);
 
-    if ((signed long) bits < 0) {
+    //normal, denormal, and special cases can all be negated
+    if ((long) bits < 0) {
         *c++ = '-';
         num = -num;
     }
 
+    //special cases
     if (num != num) {
         strcpy(c, "nan");
         c += 3;
@@ -101,28 +103,70 @@ int dtoa(char* chars, double num) {
         *c++ = '0';
     }
     else {
-        int floor_log2 = (bits >> 52 & 0x7FF) - 1023;
+        double acceptableError;
+        if (requestedDigits > 0) {
+            //only the requested digits are significant.
+            acceptableError = pow(10.0, -requestedDigits);
+            
+            //round beyond requested digits
+            num += acceptableError * (0.5 + 1e-10);
+        } else {
+            //only the first 12 digits are significant
+            acceptableError = 1e-12;
+            
+            //round beyond signficant digits
+            num *= 1.0 + 1e-13;
+        }
+
+        //approximate power of 10 from power of 2 encoded within the double
+        const int floor_log2 = (bits >> 52 & 0x7FF) - 1023;
         int power = ceil(floor_log2 * log10(2.0));
 
-        //extract the power of 10 and normalize
-        num = num * pow(10.0, -power) * (1.0 + 1e-13); //round the last few digits up
+        //adjust approximation and normalize argument for printing
+        num = num * pow(10.0, -power);
         if (num < 1.0) {
             num *= 10.0;
             --power;
         }
 
-        double error = 1e-12;
+        //detect fixed point formatting, either forced or automatic
+        int digitsAfterDot = 0;
+        if (power > -5 && power < 6 || requestedDigits >= 0) {
+            if (power < 0) {
+                //insert extra zeros before first sig digit
+                num *= pow(10.0, power);
+            } else {
+                //delay placement of dot
+                digitsAfterDot = -power;
+            }
+
+            //hide scientific notation and avoid generating one too few digits
+            if (requestedDigits < 0) {
+                requestedDigits = 0;
+            }
+        }
+
+        //generate all significant digits
         do {
+            if (digitsAfterDot == 1) {
+                *c++ = '.';
+            }
+
             double digit = floor(num);
             num -= digit;
             *c++ = (char)digit + '0';
 
-            error *= 10.0;
+            acceptableError *= 10.0;
             num *= 10.0;
-        } while (num > error);
 
-        *c++ = 'e';
-        c += ltoa(c, power);
+            ++digitsAfterDot;
+        } while (num > acceptableError || digitsAfterDot <= requestedDigits);
+
+        //print power of 10 if not using fixed point formatting
+        if (requestedDigits < 0) {
+            *c++ = 'e';
+            c += ltoa(c, power);
+        }
     }
 
     return c - chars;

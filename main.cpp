@@ -15,8 +15,8 @@ int main() {
     //testltoa(123456789123456789);
     //testltoa(0x8000000000000000);
 
-    // testdtoa();
-    testMagnitudes();
+    testdtoa();
+    // testMagnitudes();
 }
 
 
@@ -37,14 +37,44 @@ void testltoa(long l) {
 
 void testdtoa() {
     char* out = new char[256];
-    // double tests[] = {0.696, 696.0 / 1000.0};
-    double tests[] = {0.0, -0.0, INFINITY, -INFINITY, NAN, -NAN, 696.0 / 1000.0};
+    double tests[] = {
+        0.0, -0.0, INFINITY, -INFINITY, NAN, -NAN,
+        123.456,
+        100.005,
+        1e10,
+        1e-308,
+        9.999,
+        0.123456789,
+        -987.654e10,
+        123.321e-10,
+    };
 
-    // for (double d = 0; d <= 1000.0; d += 1.0) {
+    std::cout << std::left << std::setw(20) << "C++ built-in";
+    std::cout << std::left << std::setw(20) << "default";
+    std::cout << std::left << std::setw(20) << "fixed-point";
+    std::cout << std::left << std::setw(20) << "2 decimal digits";
+    std::cout << std::endl;
+
+    std::cout << std::setfill('_') << std::setw(80) << "" << std::endl << std::setfill(' ');
+
     for (double d : tests) {
-        int length =  dtoa(out, d);
+        std::cout << std::left << std::setw(20) << d;
+
+        int length;
+        
+        length = dtoa(out, d);
         out[length] = 0;
-        std::cout << std::left << std::setw(20) << d << out << std::endl;
+        std::cout << std::left << std::setw(20) << out;
+
+        length = dtoa(out, d, 0);
+        out[length] = 0;
+        std::cout << std::left << std::setw(20) << out;
+
+        length = dtoa(out, d, 2);
+        out[length] = 0;
+        std::cout << std::left << std::setw(20) << out;
+
+        std::cout << std::endl;
     }
 
     delete[] out;
@@ -54,13 +84,22 @@ void testdtoa() {
 void testMagnitudes() {
     char* out = new char[256];
 
-    for (double d = 1e-2; d <= 1e1; d += 1e-2) {
-        int length = dtoa(out, d);
-        if (length == -1) {
-            break;
-        }
+    std::cout << std::left << std::setw(20) << "C++ built-in";
+    std::cout << std::left << std::setw(20) << "custom";
+    std::cout << std::endl;
+
+    std::cout << std::setfill('_') << std::setw(80) << "" << std::endl << std::setfill(' ');
+
+    for (double d = 1e-308; d <= 1e308; d *= 10.0) {
+        std::cout << std::left << std::setw(20) << d;
+
+        int length;
+        
+        length = dtoa(out, d);
         out[length] = 0;
-        std::cout << std::left << std::setw(20) << d << out << std::endl;
+        std::cout << std::left << std::setw(20) << out;
+
+        std::cout << std::endl;
     }
 
     delete[] out;
