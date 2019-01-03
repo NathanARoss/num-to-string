@@ -15,8 +15,8 @@ int main() {
     //testltoa(123456789123456789);
     //testltoa(0x8000000000000000);
 
-    testdtoa();
-    // testMagnitudes();
+    // testdtoa();
+    testMagnitudes();
 }
 
 
@@ -54,7 +54,7 @@ void testdtoa() {
 void testMagnitudes() {
     char* out = new char[256];
 
-    for (double d = 1e-308; d <= 1e308; d *= 1.1) {
+    for (double d = 1e-2; d <= 1e1; d += 1e-2) {
         int length = dtoa(out, d);
         if (length == -1) {
             break;

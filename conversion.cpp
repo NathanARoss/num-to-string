@@ -105,13 +105,13 @@ int dtoa(char* chars, double num) {
         int power = ceil(floor_log2 * log10(2.0));
 
         //extract the power of 10 and normalize
-        num = num * pow(10.0, -power) * (1.0 + 1e-14); //round the last few digits up
+        num = num * pow(10.0, -power) * (1.0 + 1e-13); //round the last few digits up
         if (num < 1.0) {
             num *= 10.0;
             --power;
         }
 
-        double error = 1e-13;
+        double error = 1e-12;
         do {
             double digit = floor(num);
             num -= digit;
