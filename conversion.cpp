@@ -57,7 +57,7 @@ int lengthOfLong(unsigned long num) {
 }
 
 
-int ltoa(long num, char* chars) {
+int ltoa(char* chars, long num) {
     unsigned long number;
     int length = 0;
 
@@ -80,62 +80,50 @@ int ltoa(long num, char* chars) {
     return length;
 }
 
-int dtoa(double num, char* chars) {
-    if (num != num) {
-        strcpy(chars, "nan");
-        return 3;
-    }
-    if (num == INFINITY) {
-        strcpy(chars, "inf");
-        return 3;
-    }
-    if (num == -INFINITY) {
-        strcpy(chars, "-inf");
-        return 4;
-    }
-
+int dtoa(char* chars, double num) {
+    char* c = chars;
     unsigned long bits = *reinterpret_cast<unsigned long*>(&num);
-    if (bits == 0) {
-        chars[0] = '0';
-        return 1;
-    }
-    if (bits == 0x8000000000000000) {
-        strcpy(chars, "-0");
-        return 2;
-    }
 
-    int length = 0;
-    if (bits >> 63 == 1) {
-        chars[0] = '-';
-        ++length;
+    if ((signed long) bits < 0) {
+        *c++ = '-';
         num = -num;
     }
 
-    int floor_log2 = ((bits & 0x7FF0000000000000) >> 52) - 1023;
-    int power = ceil(floor_log2 * log10(2.0));
-    if (pow(10.0, power) > num) {
-        --power;
+    if (num != num) {
+        strcpy(c, "nan");
+        c += 3;
     }
-    
-    if (power != floor(log10(num))) {
-        std::cout << "power estimation failed. log10(" << num << ") != " << power << std::endl;
-        return 0;
+    else if (num == INFINITY) {
+        strcpy(c, "inf");
+        c += 3;
+    }
+    else if (bits << 1 == 0) {
+        *c++ = '0';
+    }
+    else {
+        int floor_log2 = (bits >> 52 & 0x7FF) - 1023;
+        int power = ceil(floor_log2 * log10(2.0));
+
+        //extract the power of 10 and normalize
+        num = num * pow(10.0, -power) * (1.0 + 1e-14); //round the last few digits up
+        if (num < 1.0) {
+            num *= 10.0;
+            --power;
+        }
+
+        double error = 1e-13;
+        do {
+            double digit = floor(num);
+            num -= digit;
+            *c++ = (char)digit + '0';
+
+            error *= 10.0;
+            num *= 10.0;
+        } while (num > error);
+
+        *c++ = 'e';
+        c += ltoa(c, power);
     }
 
-    const double scale = pow(10.0, -power);
-
-    double before = std::nextafter(num * scale, -INFINITY);
-    num = std::nextafter(num * scale, INFINITY);
-    double epsilon = num - before;
-
-    while (num > epsilon) {
-        double digit = floor(num);
-        num -= digit;
-        chars[length++] = (char)digit + '0';
-
-        num *= 10.0;
-        epsilon *= 10.0;
-    }
-
-    return length;
+    return c - chars;
 }

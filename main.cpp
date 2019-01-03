@@ -23,7 +23,7 @@ int main() {
 void testltoa(long l) {
     char* out = new char[256];
     
-    int length = ltoa(l, out);
+    int length = ltoa(out, l);
     std::cout << "length: " << length << std::endl;
     out[length] = 0;
 
@@ -37,13 +37,14 @@ void testltoa(long l) {
 
 void testdtoa() {
     char* out = new char[256];
-    double tests[] = {1.0, 1.1, 1.01, 1.001, 1.0001, 1.123456, 9.99};
-    // double tests[] = {0.0, -0.0, INFINITY, -INFINITY, NAN};
+    // double tests[] = {0.696, 696.0 / 1000.0};
+    double tests[] = {0.0, -0.0, INFINITY, -INFINITY, NAN, -NAN, 696.0 / 1000.0};
 
-    for (double d = 0; d <= 1000.0; d += 1.0) {
-        int length =  dtoa(d / 1000.0, out);
+    // for (double d = 0; d <= 1000.0; d += 1.0) {
+    for (double d : tests) {
+        int length =  dtoa(out, d);
         out[length] = 0;
-        std::cout << "std: " << std::left << std::setw(12) << d << "me : " << out << std::endl;
+        std::cout << std::left << std::setw(20) << d << out << std::endl;
     }
 
     delete[] out;
@@ -53,8 +54,13 @@ void testdtoa() {
 void testMagnitudes() {
     char* out = new char[256];
 
-    for (double d = std::numeric_limits<double>::max(); d >= std::numeric_limits<double>::min(); d *= 0.9999) {
-        dtoa(d, out);
+    for (double d = 1e-308; d <= 1e308; d *= 1.1) {
+        int length = dtoa(out, d);
+        if (length == -1) {
+            break;
+        }
+        out[length] = 0;
+        std::cout << std::left << std::setw(20) << d << out << std::endl;
     }
 
     delete[] out;

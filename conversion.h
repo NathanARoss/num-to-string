@@ -1,2 +1,2 @@
-int ltoa(long num, char* chars);
-int dtoa(double num, char* chars);
+int ltoa(char* chars, long num);
+int dtoa(char* chars, double num);
