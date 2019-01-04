@@ -10,13 +10,17 @@ void testltoa(long l);
 void testdtoa();
 
 void testMagnitudes();
+void testLog2ToLog10Approximation();
+void testLengthOfLong();
 
 int main() {
     //testltoa(123456789123456789);
     //testltoa(0x8000000000000000);
 
-    testdtoa();
+    // testdtoa();
     // testMagnitudes();
+    // testLog2ToLog10Approximation();
+    testLengthOfLong();
 }
 
 
@@ -103,4 +107,51 @@ void testMagnitudes() {
     }
 
     delete[] out;
+}
+
+
+void testLog2ToLog10Approximation() {
+    for (int i = 0; i <= 64; ++i) {
+        int floor_log2 = i;
+        int approximation = (floor_log2 * 77) >> 8;
+
+        static constexpr unsigned log10_from_log2[65] =
+        {
+            0 ,0 ,0 ,0 , 1 ,1 ,1 , 2 ,2 ,2 ,
+            3 ,3 ,3 ,3 , 4 ,4 ,4 , 5 ,5 ,5 ,
+            6 ,6 ,6 ,6 , 7 ,7 ,7 , 8 ,8 ,8 ,
+            9 ,9 ,9 ,9 , 10,10,10, 11,11,11,
+            12,12,12,12, 13,13,13, 14,14,14,
+            15,15,15,15, 16,16,16, 17,17,17,
+            18,18,18,18, 19
+        };
+        int knownLog10 = log10_from_log2[i];
+
+        std::cout << "2^" << i << ": log10 approximation: " << approximation << ", known: " << knownLog10;
+
+        if (approximation != knownLog10) {
+            std::cout << " failed";
+        }
+        std::cout << std::endl;
+    }
+}
+
+
+void testLengthOfLong() {
+    int length = lengthOfLong(0);
+    std::cout << "length(0) == " << length << std::endl;
+
+    unsigned long l = 1;
+    for (int i = 0; i < 64; ++i) {
+        int length = lengthOfLong(l);
+        std::cout << "length(" << l << ") == " << length << std::endl;
+        l *= 2;
+    }
+
+    l = 1;
+    for (int i = 0; i < 19; ++i) {
+        int length = lengthOfLong(l);
+        std::cout << "length(" << l << ") == " << length << std::endl;
+        l *= 10;
+    }
 }

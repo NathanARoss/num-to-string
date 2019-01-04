@@ -28,32 +28,37 @@ void printDoubleComponents(double f) {
 
 int lengthOfLong(unsigned long num) {
     static const unsigned long magnitudes[] = {
-        10L, //1
-        100L, //2
-        10000L, //4
-        100000000L, //8
+        1ULL,
+        10ULL,
+        100ULL,
+        1000ULL,
+        10000ULL,
+        100000ULL,
+        1000000ULL,
+        10000000ULL,
+        100000000ULL,
+        1000000000ULL,
+        10000000000ULL,
+        100000000000ULL,
+        1000000000000ULL,
+        10000000000000ULL,
+        100000000000000ULL,
+        1000000000000000ULL,
+        10000000000000000ULL,
+        100000000000000000ULL,
+        1000000000000000000ULL,
+        10000000000000000000ULL,
     };
 
-    int length = 1;
-    unsigned long pow10 = 1;
+    int floor_log2;
+    if (num == 0) {
+        floor_log2 = 4;
+    } else {
+        floor_log2 = 64 - __builtin_clzl(num);
+    }
 
-    int i = 3;
-    do {
-        unsigned long temp = pow10 * magnitudes[i];
-        if (temp <= num) {
-            pow10 = temp;
-            length += 1 << i;
-
-            if (i == 2 && length == 13) {
-                //check 10000L twice
-                continue;
-            }
-        }
-
-        --i;
-    } while (i >= 0);
-
-    return length;
+    int floor_log10 = (floor_log2 * 77) >> 8; // * log10(2.0);
+    return floor_log10 + (num >= magnitudes[floor_log10]);
 }
 
 
