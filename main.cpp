@@ -11,6 +11,7 @@ void testdtoa();
 
 void testMagnitudes();
 void testLog2ToLog10Approximation();
+void testMangitudeApproximationForDoubles();
 void testLengthOfLong();
 
 int main() {
@@ -18,9 +19,11 @@ int main() {
     //testltoa(0x8000000000000000);
 
     // testdtoa();
-    // testMagnitudes();
+    testMagnitudes();
+
     // testLog2ToLog10Approximation();
-    testLengthOfLong();
+    // testLengthOfLong();
+    // testMangitudeApproximationForDoubles();
 }
 
 
@@ -87,6 +90,7 @@ void testdtoa() {
 
 void testMagnitudes() {
     char* out = new char[256];
+    std::fill(out, out + 256, 'x');
 
     std::cout << std::left << std::setw(20) << "C++ built-in";
     std::cout << std::left << std::setw(20) << "custom";
@@ -109,31 +113,49 @@ void testMagnitudes() {
     delete[] out;
 }
 
-
 void testLog2ToLog10Approximation() {
     for (int i = 0; i <= 64; ++i) {
         int floor_log2 = i;
         int approximation = (floor_log2 * 77) >> 8;
-
-        static constexpr unsigned log10_from_log2[65] =
-        {
-            0 ,0 ,0 ,0 , 1 ,1 ,1 , 2 ,2 ,2 ,
-            3 ,3 ,3 ,3 , 4 ,4 ,4 , 5 ,5 ,5 ,
-            6 ,6 ,6 ,6 , 7 ,7 ,7 , 8 ,8 ,8 ,
-            9 ,9 ,9 ,9 , 10,10,10, 11,11,11,
-            12,12,12,12, 13,13,13, 14,14,14,
-            15,15,15,15, 16,16,16, 17,17,17,
-            18,18,18,18, 19
-        };
-        int knownLog10 = log10_from_log2[i];
-
-        std::cout << "2^" << i << ": log10 approximation: " << approximation << ", known: " << knownLog10;
+        int knownLog10 = log10(exp2(i));
 
         if (approximation != knownLog10) {
-            std::cout << " failed";
+            std::cout << "2^" << i << ": log10 approximation: " << approximation << ", known: " << knownLog10 << std::endl;
         }
+    }
+}
+
+void testMangitudeApproximationForDoubles() {
+    int col = 0;
+
+    for (int i = 1; i <= 2046; ++i) {
+        int approximation = (((unsigned)i * 1262611 + 194579) >> 22) - 308;
+        // int approximation = floor((i - 1023) * log10(2.0)); //known to work
+
+        int knownLog10 = floor(log10(exp2(i - 1023)));
+
+        if (approximation != knownLog10) {
+            std::cout << std::setw(4) << std::left << (signed)(i) << " -> " << std::setw(4) << approximation << " error " << (approximation - knownLog10);
+
+            if (col == 4) {
+                std::cout << std::endl;
+                col = 0;
+            } else {
+                std::cout << "\t\t";
+                ++col;
+            }
+        }
+    }
+
+    if (col != 0) {
         std::cout << std::endl;
     }
+
+    // for (unsigned i = 0; i <= 22; ++i) {
+    //     unsigned approximation = floor(log10(2.0) * (1 << i));
+    //     double error = approximation / exp2(i) - log10(2.0);
+    //     std::cout << "* " << std::setw(6) << approximation << " >> " << i << "\t\terror: " << error << std::endl;
+    // }
 }
 
 

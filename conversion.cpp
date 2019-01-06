@@ -124,22 +124,23 @@ int dtoa(char* chars, double num, int requestedDigits) {
         }
 
         //approximate power of 10 from power of 2 encoded within the double
-        const int floor_log2 = (bits >> 52 & 0x7FF) - 1023;
-        int power = ceil(floor_log2 * log10(2.0));
+        const unsigned exponent2 = bits >> 52 & 0x7FF;
+        //approximation for: floor((exponent2 - 1023) * log10(2.0));  handles 11 bit uints
+        int power = ((exponent2 * 1262611 + 194579) >> 22) - 308;
 
         //adjust approximation and normalize argument for printing
-        num = num * pow(10.0, -power);
-        if (num < 1.0) {
-            num *= 10.0;
-            --power;
+        double scaledNum = num * pow(10.0, -power);
+        if (scaledNum > 10.0) {
+            scaledNum *= 0.1;
+            ++power;
         }
 
         //detect fixed point formatting, either forced or automatic
         int digitsAfterDot = 0;
         if (power > -5 && power < 6 || requestedDigits >= 0) {
             if (power < 0) {
-                //insert extra zeros before first sig digit
-                num *= pow(10.0, power);
+                //return the number to its original scale
+                scaledNum = num;
             } else {
                 //delay placement of dot
                 digitsAfterDot = -power;
@@ -157,20 +158,37 @@ int dtoa(char* chars, double num, int requestedDigits) {
                 *c++ = '.';
             }
 
-            double digit = floor(num);
-            num -= digit;
+            double digit = floor(scaledNum);
+            scaledNum -= digit;
             *c++ = (char)digit + '0';
 
             acceptableError *= 10.0;
-            num *= 10.0;
+            scaledNum *= 10.0;
 
             ++digitsAfterDot;
-        } while (num > acceptableError || digitsAfterDot <= requestedDigits);
+        } while (scaledNum > acceptableError || digitsAfterDot <= requestedDigits);
 
         //print power of 10 if not using fixed point formatting
         if (requestedDigits < 0) {
             *c++ = 'e';
-            c += ltoa(c, power);
+
+            if (power < 0) {
+                *c++ = '-';
+                power = -power;
+            }
+
+            //generate digits backwards
+            char *cc = c;
+
+            do {
+                *c++ = '0' + power % 10;
+                power /= 10;
+            } while (power != 0);
+
+            //swap first and last digit
+            int temp = *(c-1);
+            *(c-1) = *cc;
+            *cc = temp;
         }
     }
 
