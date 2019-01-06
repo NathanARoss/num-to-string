@@ -18,10 +18,10 @@ int main() {
     //testltoa(123456789123456789);
     //testltoa(0x8000000000000000);
 
-    testdtoa();
+    // testdtoa();
     // testMagnitudes();
 
-    // testLog2ToLog10Approximation();
+    testLog2ToLog10Approximation();
     // testLengthOfLong();
     // testMangitudeApproximationForDoubles();
 }
@@ -117,15 +117,28 @@ void testMagnitudes() {
 }
 
 void testLog2ToLog10Approximation() {
-    for (int i = 0; i <= 64; ++i) {
-        int floor_log2 = i;
-        int approximation = (floor_log2 * 77) >> 8;
-        int knownLog10 = log10(exp2(i));
+    int canBeRaised = 0x7FFFFFFF;
+    int needsToBeRaised = 0;
+    int canBeLowered = 0x7FFFFFFF;
+    int needsToBeLowered = 0;
 
-        if (approximation != knownLog10) {
-            std::cout << "2^" << i << ": log10 approximation: " << approximation << ", known: " << knownLog10 << std::endl;
-        }
+    for (int i = 0; i <= 64; ++i) {
+        int knownLog10 = log10(exp2(i));
+        int lowBound = knownLog10 << 8;
+        int highBound = lowBound + (1 << 8) - 1;
+
+        int approximation = i * 77;
+
+        needsToBeRaised = std::max(needsToBeRaised, lowBound - approximation);
+        needsToBeLowered = std::max(needsToBeLowered, approximation - highBound);
+        canBeLowered = std::min(canBeLowered, std::max(approximation - lowBound, 0));
+        canBeRaised = std::min(canBeRaised, std::max(highBound - approximation, 0));
     }
+
+    std::cout << "needs to be raised: " << needsToBeRaised << std::endl;
+    std::cout << "can be raised: " << canBeRaised << std::endl;
+    std::cout << "needs to be lowered: " << needsToBeLowered << std::endl;
+    std::cout << "can be lowered: " << canBeLowered << std::endl;
 }
 
 void testMangitudeApproximationForDoubles() {
@@ -136,10 +149,11 @@ void testMangitudeApproximationForDoubles() {
 
     for (int i = 1; i <= 2046; ++i) {
         int knownLog10 = floor(log10(exp2(i - 1023))) + 308;
-        // int approximation = floor((i - 1023) * log10(2.0)); //known to work
-        int approximation = (unsigned)i * 78913 + 12353; // + 218 would not change results
         int lowBound = knownLog10 << 18;
         int highBound = lowBound + (1 << 18) - 1;
+
+        // int approximation = floor((i - 1023) * log10(2.0)); //known to work
+        int approximation = (unsigned)i * 78913 + 12353; // + 218 would not change results
 
         needsToBeRaised = std::max(needsToBeRaised, lowBound - approximation);
         needsToBeLowered = std::max(needsToBeLowered, approximation - highBound);
