@@ -18,8 +18,8 @@ int main() {
     //testltoa(123456789123456789);
     //testltoa(0x8000000000000000);
 
-    // testdtoa();
-    testMagnitudes();
+    testdtoa();
+    // testMagnitudes();
 
     // testLog2ToLog10Approximation();
     // testLengthOfLong();
@@ -126,30 +126,33 @@ void testLog2ToLog10Approximation() {
 }
 
 void testMangitudeApproximationForDoubles() {
-    int col = 0;
+    int canBeRaised = 0x7FFFFFFF;
+    int needsToBeRaised = 0;
+    int canBeLowered = 0x7FFFFFFF;
+    int needsToBeLowered = 0;
 
     for (int i = 1; i <= 2046; ++i) {
-        int approximation = (((unsigned)i * 1262611 + 194579) >> 22) - 308;
+        int knownLog10 = floor(log10(exp2(i - 1023))) + 308;
         // int approximation = floor((i - 1023) * log10(2.0)); //known to work
+        int approximation = (unsigned)i * 78913 + 12353;
+        int lowBound = knownLog10 << 18;
+        int highBound = lowBound + (1 << 18) - 1;
 
-        int knownLog10 = floor(log10(exp2(i - 1023)));
-
-        if (approximation != knownLog10) {
-            std::cout << std::setw(4) << std::left << (signed)(i) << " -> " << std::setw(4) << approximation << " error " << (approximation - knownLog10);
-
-            if (col == 4) {
-                std::cout << std::endl;
-                col = 0;
-            } else {
-                std::cout << "\t\t";
-                ++col;
-            }
+        if (approximation < lowBound) {
+            needsToBeRaised = std::max(needsToBeRaised, lowBound - approximation);
+        }
+        else if (approximation > highBound) {
+            needsToBeLowered = std::max(needsToBeLowered, approximation - highBound);
+        } else {
+            canBeLowered = std::min(canBeLowered, approximation - lowBound);
+            canBeRaised = std::min(canBeRaised, highBound - approximation);
         }
     }
 
-    if (col != 0) {
-        std::cout << std::endl;
-    }
+    std::cout << "needs to be raised: " << needsToBeRaised << std::endl;
+    std::cout << "can be raised: " << canBeRaised << std::endl;
+    std::cout << "needs to be lowered: " << needsToBeLowered << std::endl;
+    std::cout << "can be lowered: " << canBeLowered << std::endl;
 
     // for (unsigned i = 0; i <= 22; ++i) {
     //     unsigned approximation = floor(log10(2.0) * (1 << i));

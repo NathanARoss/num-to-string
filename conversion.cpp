@@ -126,7 +126,7 @@ int dtoa(char* chars, double num, int requestedDigits) {
         //approximate power of 10 from power of 2 encoded within the double
         const unsigned exponent2 = bits >> 52 & 0x7FF;
         //approximation for: floor((exponent2 - 1023) * log10(2.0));  handles 11 bit uints
-        int power = ((exponent2 * 1262611 + 194579) >> 22) - 308;
+        int power = ((exponent2 * 78913 + 12353) >> 18) - 308;
 
         //adjust approximation and normalize argument for printing
         double scaledNum = num * pow(10.0, -power);
