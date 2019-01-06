@@ -18,12 +18,12 @@ int main() {
     //testltoa(123456789123456789);
     //testltoa(0x8000000000000000);
 
-    // testdtoa();
+    testdtoa();
     // testMagnitudes();
 
     // testLog2ToLog10Approximation();
     // testLengthOfLong();
-    testMangitudeApproximationForDoubles();
+    // testMangitudeApproximationForDoubles();
 }
 
 
@@ -54,12 +54,15 @@ void testdtoa() {
         0.123456789,
         -987.654e10,
         123.321e-10,
+        std::numeric_limits<double>::min(),
+        std::numeric_limits<double>::max(),
+        1.796e308,
     };
 
     std::cout << std::left << std::setw(20) << "C++ built-in";
     std::cout << std::left << std::setw(20) << "default";
-    std::cout << std::left << std::setw(20) << "fixed-point";
-    std::cout << std::left << std::setw(20) << "2 decimal digits";
+    // std::cout << std::left << std::setw(20) << "fixed-point";
+    // std::cout << std::left << std::setw(20) << "2 decimal digits";
     std::cout << std::endl;
 
     std::cout << std::setfill('_') << std::setw(80) << "" << std::endl << std::setfill(' ');
@@ -73,13 +76,13 @@ void testdtoa() {
         out[length] = 0;
         std::cout << std::left << std::setw(20) << out;
 
-        length = dtoa(out, d, 0);
-        out[length] = 0;
-        std::cout << std::left << std::setw(20) << out;
+        // length = dtoa(out, d, 0);
+        // out[length] = 0;
+        // std::cout << std::left << std::setw(20) << out;
 
-        length = dtoa(out, d, 2);
-        out[length] = 0;
-        std::cout << std::left << std::setw(20) << out;
+        // length = dtoa(out, d, 2);
+        // out[length] = 0;
+        // std::cout << std::left << std::setw(20) << out;
 
         std::cout << std::endl;
     }
@@ -140,8 +143,8 @@ void testMangitudeApproximationForDoubles() {
 
         needsToBeRaised = std::max(needsToBeRaised, lowBound - approximation);
         needsToBeLowered = std::max(needsToBeLowered, approximation - highBound);
-        canBeLowered = std::min(canBeLowered, approximation - lowBound);
-        canBeRaised = std::min(canBeRaised, highBound - approximation);
+        canBeLowered = std::min(canBeLowered, std::max(approximation - lowBound, 0));
+        canBeRaised = std::min(canBeRaised, std::max(highBound - approximation, 0));
     }
 
     std::cout << "needs to be raised: " << needsToBeRaised << std::endl;

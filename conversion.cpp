@@ -120,7 +120,9 @@ int dtoa(char* chars, double num, int requestedDigits) {
             acceptableError = 1e-12;
             
             //round beyond signficant digits
-            num *= 1.0 + 1e-13;
+            if (num < 1.797e308) {
+                num *= 1.0 + 1e-13;
+            }
         }
 
         //approximate power of 10 from power of 2 encoded within the double
