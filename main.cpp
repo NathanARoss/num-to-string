@@ -18,12 +18,12 @@ int main() {
     //testltoa(123456789123456789);
     //testltoa(0x8000000000000000);
 
-    testdtoa();
+    // testdtoa();
     // testMagnitudes();
 
     // testLog2ToLog10Approximation();
     // testLengthOfLong();
-    // testMangitudeApproximationForDoubles();
+    testMangitudeApproximationForDoubles();
 }
 
 
@@ -134,19 +134,14 @@ void testMangitudeApproximationForDoubles() {
     for (int i = 1; i <= 2046; ++i) {
         int knownLog10 = floor(log10(exp2(i - 1023))) + 308;
         // int approximation = floor((i - 1023) * log10(2.0)); //known to work
-        int approximation = (unsigned)i * 78913 + 12353;
+        int approximation = (unsigned)i * 78913 + 12353; // + 218 would not change results
         int lowBound = knownLog10 << 18;
         int highBound = lowBound + (1 << 18) - 1;
 
-        if (approximation < lowBound) {
-            needsToBeRaised = std::max(needsToBeRaised, lowBound - approximation);
-        }
-        else if (approximation > highBound) {
-            needsToBeLowered = std::max(needsToBeLowered, approximation - highBound);
-        } else {
-            canBeLowered = std::min(canBeLowered, approximation - lowBound);
-            canBeRaised = std::min(canBeRaised, highBound - approximation);
-        }
+        needsToBeRaised = std::max(needsToBeRaised, lowBound - approximation);
+        needsToBeLowered = std::max(needsToBeLowered, approximation - highBound);
+        canBeLowered = std::min(canBeLowered, approximation - lowBound);
+        canBeRaised = std::min(canBeRaised, highBound - approximation);
     }
 
     std::cout << "needs to be raised: " << needsToBeRaised << std::endl;
