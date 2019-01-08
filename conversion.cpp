@@ -25,6 +25,31 @@ void printDoubleComponents(double f) {
 }
 
 
+double pow10(int exponent) {
+    double result = 1.0;
+    double base = 10.0;
+
+    if (exponent < 0) {
+        base = 0.1;
+        exponent = -exponent;
+    }
+
+    for (;;)
+    {
+        if (exponent & 1) {
+            result *= base;
+        }
+        exponent >>= 1;
+        if (exponent == 0) {
+            break;
+        }
+        base *= base;
+    }
+
+    return result;
+}
+
+
 
 int lengthOfLong(unsigned long num) {
     static const unsigned long magnitudes[] = {
@@ -120,7 +145,8 @@ int dtoa(char* chars, double num, int requestedDigits) {
         int power = ((exponent2 * 78913 + 12353) >> 18) - 308;
 
         //preform approximate normalization
-        double inverseMagnitude = pow(10.0, -power);
+        // double inverseMagnitude = pow(10.0, -power);
+        double inverseMagnitude = pow10(-power);
 
         double acceptableError;
         if (requestedDigits > 0) {
