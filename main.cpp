@@ -15,12 +15,13 @@ void testMangitudeApproximationForDoubles();
 void testLengthOfLong();
 
 int main() {
-    //testltoa(123456789123456789);
-    //testltoa(0x8000000000000000);
+    std::cout << "ltoa:" << std::endl;
+    testltoa(123456789123456789);
+    testltoa(0x8000000000000000);
 
-    testMagnitudes();
-    std::cout << std::endl;
-    testdtoa();
+    // testMagnitudes();
+    // std::cout << std::endl;
+    // testdtoa();
 
     // testLog2ToLog10Approximation();
     // testLengthOfLong();
@@ -32,12 +33,9 @@ void testltoa(long l) {
     char* out = new char[256];
     
     int length = ltoa(out, l);
-    std::cout << "length: " << length << std::endl;
     out[length] = 0;
 
-    std::cout << "long" << std::endl;
-    std::cout << "std: " <<  l << std::endl;
-    std::cout << "me:  " << out << std::endl;
+    std::cout << std::setw(20) << std::left << l << "\t" << out << std::endl;
 
     delete[] out;
 }

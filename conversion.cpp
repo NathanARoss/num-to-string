@@ -54,7 +54,7 @@ int lengthOfLong(unsigned long num) {
     if (num == 0) {
         floor_log2 = 4;
     } else {
-        floor_log2 = 64 - __builtin_clzl(num);
+        floor_log2 = 64 - __builtin_clzl(num); //floor(log2(num))
     }
 
     int floor_log10 = (floor_log2 * 77) >> 8; // * log10(2.0);
@@ -74,7 +74,13 @@ int ltoa(char* chars, long num) {
         number = num;
     }
     
-    length += lengthOfLong(number);
+    // length += lengthOfLong(number);
+
+    unsigned long copy = number;
+    do {
+        ++length;
+        copy /= 10;
+    } while (copy != 0);
 
     char *p = chars + length - 1;
     do {
