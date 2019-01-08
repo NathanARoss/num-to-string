@@ -119,7 +119,12 @@ int dtoa(char* chars, double num, int requestedDigits) {
         double acceptableError;
         if (requestedDigits > 0) {
             //only the requested digits are significant.
-            acceptableError = pow(10.0, -requestedDigits);
+            //only a handful of digits will be requested, so a small loop works
+            acceptableError = 1;
+            int i = 0;
+            do {
+                acceptableError *= 0.1;
+            } while (++i < requestedDigits);
             
             //round beyond requested digits
             num += acceptableError * (0.5 + 1e-10);
@@ -127,11 +132,9 @@ int dtoa(char* chars, double num, int requestedDigits) {
             //only the first 12 digits are significant
             acceptableError = 1e-12;
 
-            //round beyond signficant digits
-            //if I round the num variable as is, it has the chance to overflow
+            //round the scaling factor itself to avoid overflowing num
             inverseMagnitude *= 1.0 + 1e-13;
         }
-
 
         //adjust approximate normalization
         double scaledNum = num * inverseMagnitude;
@@ -150,8 +153,7 @@ int dtoa(char* chars, double num, int requestedDigits) {
         int digitsAfterDot = 0;
         if (requestedDigits >= 0) {   
             if (power < 0) {
-                //return the number to its original scale
-                //I round the unscaled number because I am sure it will not overflow
+                //return the number to its original scale after rounding
                 scaledNum = num * (1.0 + 1e-13);
             } else {
                 //delay placement of dot
