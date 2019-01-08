@@ -108,6 +108,14 @@ int dtoa(char* chars, double num, int requestedDigits) {
         *c++ = '0';
     }
     else {
+        //approximate power of 10 from power of 2 encoded within the double
+        const unsigned exponent2 = bits >> 52 & 0x7FF;
+        //approximation for: floor((exponent2 - 1023) * log10(2.0));  handles 11 bit uints
+        int power = ((exponent2 * 78913 + 12353) >> 18) - 308;
+
+        //preform approximate normalization
+        double inverseMagnitude = pow(10.0, -power);
+
         double acceptableError;
         if (requestedDigits > 0) {
             //only the requested digits are significant.
@@ -118,39 +126,36 @@ int dtoa(char* chars, double num, int requestedDigits) {
         } else {
             //only the first 12 digits are significant
             acceptableError = 1e-12;
-            
+
             //round beyond signficant digits
-            if (num < 1.797e308) {
-                num *= 1.0 + 1e-13;
-            }
+            //if I round the num variable as is, it has the chance to overflow
+            inverseMagnitude *= 1.0 + 1e-13;
         }
 
-        //approximate power of 10 from power of 2 encoded within the double
-        const unsigned exponent2 = bits >> 52 & 0x7FF;
-        //approximation for: floor((exponent2 - 1023) * log10(2.0));  handles 11 bit uints
-        int power = ((exponent2 * 78913 + 12353) >> 18) - 308;
 
-        //adjust approximation and normalize argument for printing
-        double scaledNum = num * pow(10.0, -power);
+        //adjust approximate normalization
+        double scaledNum = num * inverseMagnitude;
         if (scaledNum > 10.0) {
             scaledNum *= 0.1;
             ++power;
         }
 
-        //detect fixed point formatting, either forced or automatic
+        //detect fixed point formatting
+        if (power > -5 && power < 6 && requestedDigits < 0) {
+            //hide scientific notation and avoid generating one too few digits
+            requestedDigits = 0;
+        }
+
+        //handle fixed point formatting
         int digitsAfterDot = 0;
-        if (power > -5 && power < 6 || requestedDigits >= 0) {
+        if (requestedDigits >= 0) {   
             if (power < 0) {
                 //return the number to its original scale
-                scaledNum = num;
+                //I round the unscaled number because I am sure it will not overflow
+                scaledNum = num * (1.0 + 1e-13);
             } else {
                 //delay placement of dot
                 digitsAfterDot = -power;
-            }
-
-            //hide scientific notation and avoid generating one too few digits
-            if (requestedDigits < 0) {
-                requestedDigits = 0;
             }
         }
 

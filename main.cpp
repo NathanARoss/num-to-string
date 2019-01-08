@@ -18,10 +18,11 @@ int main() {
     //testltoa(123456789123456789);
     //testltoa(0x8000000000000000);
 
-    // testdtoa();
-    // testMagnitudes();
+    testMagnitudes();
+    std::cout << std::endl;
+    testdtoa();
 
-    testLog2ToLog10Approximation();
+    // testLog2ToLog10Approximation();
     // testLengthOfLong();
     // testMangitudeApproximationForDoubles();
 }
@@ -55,14 +56,14 @@ void testdtoa() {
         -987.654e10,
         123.321e-10,
         std::numeric_limits<double>::min(),
-        std::numeric_limits<double>::max(),
-        1.796e308,
+        // std::numeric_limits<double>::max(),
+        // 1.796e308,
     };
 
     std::cout << std::left << std::setw(20) << "C++ built-in";
     std::cout << std::left << std::setw(20) << "default";
-    // std::cout << std::left << std::setw(20) << "fixed-point";
-    // std::cout << std::left << std::setw(20) << "2 decimal digits";
+    std::cout << std::left << std::setw(20) << "fixed-point";
+    std::cout << std::left << std::setw(20) << "2 decimal digits";
     std::cout << std::endl;
 
     std::cout << std::setfill('_') << std::setw(80) << "" << std::endl << std::setfill(' ');
@@ -76,13 +77,13 @@ void testdtoa() {
         out[length] = 0;
         std::cout << std::left << std::setw(20) << out;
 
-        // length = dtoa(out, d, 0);
-        // out[length] = 0;
-        // std::cout << std::left << std::setw(20) << out;
+        length = dtoa(out, d, 0);
+        out[length] = 0;
+        std::cout << std::left << std::setw(20) << out;
 
-        // length = dtoa(out, d, 2);
-        // out[length] = 0;
-        // std::cout << std::left << std::setw(20) << out;
+        length = dtoa(out, d, 2);
+        out[length] = 0;
+        std::cout << std::left << std::setw(20) << out;
 
         std::cout << std::endl;
     }
