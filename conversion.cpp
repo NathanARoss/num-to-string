@@ -165,7 +165,7 @@ int dtoa(char* chars, double num, int requestedDigits) {
             acceptableError = 1e-12;
 
             //round the scaling factor itself to avoid overflowing num
-            inverseMagnitude *= 1.0 + 1e-13;
+            inverseMagnitude *= 1.0 + 1e-14;
         }
 
         //adjust approximate normalization

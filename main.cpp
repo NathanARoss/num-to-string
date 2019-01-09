@@ -20,15 +20,15 @@ int main() {
     // testltoa(123456789123456789);
     // testltoa(0x8000000000000000);
 
-    // testMagnitudes();
-    // std::cout << std::endl;
-    // testdtoa();
+    testMagnitudes();
+    std::cout << std::endl;
+    testdtoa();
 
     // testLog2ToLog10Approximation();
     // testLengthOfLong();
     // testMangitudeApproximationForDoubles();
 
-    testPow10();
+    // testPow10();
 }
 
 
@@ -197,17 +197,18 @@ void testLengthOfLong() {
 
 
 void testPow10() {
-    for (int i = 308; i <= 308; ++i) {
+    for (int i = -308; i <= 308; ++i) {
         double approximation = pow10(i);
         double known = pow(10.0, i);
 
         if (approximation != known) {
-            std::cout << "known : ";
-            printDoubleComponents(known);
-            std::cout << "approx: ";
-            printDoubleComponents(approximation);
-            std::cout << "dif: " << (approximation - known) << std::endl;
-            std::cout << std::endl;
+            std::cout << "10^" << std::setw(4) << std::left << i << ": ";
+            // std::cout << "known : ";
+            // printDoubleComponents(known);
+            // std::cout << "approx: ";
+            // printDoubleComponents(approximation);
+            std::cout << "error: " << (approximation - known) / known << std::endl;
+            // std::cout << std::endl;
         }
     }
 }
