@@ -213,22 +213,22 @@ char* dtoa(char* chars, double num, int requestedDigits) {
             *chars++ = 'e';
 
             if (power < 0) {
-                *chars++ = '-';
+                *chars = '-';
                 power = -power;
+            } else {
+                *chars = '+';
             }
 
-            //generate digits backwards
-            char *cc = chars;
+            power = power * ((1 << 16) / 100) + 111;
+            *(chars + 1) = (power >> 16) + '0';
 
-            do {
-                *chars++ = '0' + power % 10;
-                power /= 10;
-            } while (power != 0);
+            power = (power & 0xFFFF) * 10;
+            *(chars + 2) = (power >> 16) + '0';
 
-            //swap first and last digit
-            int temp = *(chars-1);
-            *(chars-1) = *cc;
-            *cc = temp;
+            power = (power & 0xFFFF) * 10;
+            *(chars + 3) = (power >> 16) + '0';
+
+            chars += 4;
         }
     }
 
