@@ -35,8 +35,7 @@ int main() {
 void testltoa(long l) {
     char* out = new char[256];
     
-    int length = ltoa(out, l);
-    out[length] = 0;
+    *ltoa(out, l) = 0;
 
     std::cout << std::setw(20) << std::left << l << "\t" << out << std::endl;
 
@@ -71,19 +70,14 @@ void testdtoa() {
 
     for (double d : tests) {
         std::cout << std::left << std::setw(20) << d;
-
-        int length;
         
-        length = dtoa(out, d);
-        out[length] = 0;
+        *dtoa(out, d) = 0;
         std::cout << std::left << std::setw(20) << out;
 
-        length = dtoa(out, d, 0);
-        out[length] = 0;
+        *dtoa(out, d, 0) = 0;
         std::cout << std::left << std::setw(20) << out;
 
-        length = dtoa(out, d, 2);
-        out[length] = 0;
+        *dtoa(out, d, 2) = 0;
         std::cout << std::left << std::setw(20) << out;
 
         std::cout << std::endl;
@@ -106,10 +100,7 @@ void testMagnitudes() {
     for (double d = 1e-308; d <= 1e308; d *= 10.0) {
         std::cout << std::left << std::setw(20) << d;
 
-        int length;
-        
-        length = dtoa(out, d);
-        out[length] = 0;
+        *dtoa(out, d) = 0;
         std::cout << std::left << std::setw(20) << out;
 
         std::cout << std::endl;

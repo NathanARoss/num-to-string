@@ -5,6 +5,73 @@
 #include <iomanip>
 #include "conversion.h"
 
+//calculate length of a long using a LUT instead of a loop
+int lengthOfLong(unsigned long num) {
+    static const unsigned long magnitudes[] = {
+        1ULL,
+        10ULL,
+        100ULL,
+        1000ULL,
+        10000ULL,
+        100000ULL,
+        1000000ULL,
+        10000000ULL,
+        100000000ULL,
+        1000000000ULL,
+        10000000000ULL,
+        100000000000ULL,
+        1000000000000ULL,
+        10000000000000ULL,
+        100000000000000ULL,
+        1000000000000000ULL,
+        10000000000000000ULL,
+        100000000000000000ULL,
+        1000000000000000000ULL,
+        10000000000000000000ULL,
+    };
+
+    int floor_log2;
+    if (num == 0) {
+        floor_log2 = 4;
+    } else {
+        floor_log2 = 64 - __builtin_clzl(num); //floor(log2(num))
+    }
+
+    int floor_log10 = (floor_log2 * 77) >> 8; // * log10(2.0);
+    return floor_log10 + (num >= magnitudes[floor_log10]);
+}
+
+
+char* ltoa(char* chars, long num) {
+    unsigned long number;
+
+    if (num < 0) {
+        number = -num;
+        *chars++ = '-';
+    } else {
+        number = num;
+    }
+    
+    // chars += lengthOfLong(number);
+
+    unsigned long copy = number;
+    do {
+        ++chars;
+        copy /= 10;
+    } while (copy != 0);
+
+    char* next = chars;
+    do {
+        *--chars = '0' + number % 10;
+        number /= 10;
+    } while (number != 0);
+
+    return next;
+}
+
+
+
+
 void printDoubleComponents(double f) {
     std::cout << std::left << std::setw(20) << f;
 
@@ -49,94 +116,26 @@ double pow10(int exponent) {
     return result;
 }
 
-
-
-int lengthOfLong(unsigned long num) {
-    static const unsigned long magnitudes[] = {
-        1ULL,
-        10ULL,
-        100ULL,
-        1000ULL,
-        10000ULL,
-        100000ULL,
-        1000000ULL,
-        10000000ULL,
-        100000000ULL,
-        1000000000ULL,
-        10000000000ULL,
-        100000000000ULL,
-        1000000000000ULL,
-        10000000000000ULL,
-        100000000000000ULL,
-        1000000000000000ULL,
-        10000000000000000ULL,
-        100000000000000000ULL,
-        1000000000000000000ULL,
-        10000000000000000000ULL,
-    };
-
-    int floor_log2;
-    if (num == 0) {
-        floor_log2 = 4;
-    } else {
-        floor_log2 = 64 - __builtin_clzl(num); //floor(log2(num))
-    }
-
-    int floor_log10 = (floor_log2 * 77) >> 8; // * log10(2.0);
-    return floor_log10 + (num >= magnitudes[floor_log10]);
-}
-
-
-int ltoa(char* chars, long num) {
-    unsigned long number;
-    int length = 0;
-
-    if (num < 0) {
-        number = -num;
-        chars[0] = '-';
-        ++length;
-    } else {
-        number = num;
-    }
-    
-    // length += lengthOfLong(number);
-
-    unsigned long copy = number;
-    do {
-        ++length;
-        copy /= 10;
-    } while (copy != 0);
-
-    char *p = chars + length - 1;
-    do {
-        *p-- = '0' + number % 10;
-        number /= 10;
-    } while (number != 0);
-
-    return length;
-}
-
-int dtoa(char* chars, double num, int requestedDigits) {
-    char* c = chars;
+char* dtoa(char* chars, double num, int requestedDigits) {
     const unsigned long bits = *reinterpret_cast<long*>(&num);
 
     //normal, denormal, and special cases can all be negated
     if ((long) bits < 0) {
-        *c++ = '-';
+        *chars++ = '-';
         num = -num;
     }
 
     //special cases
     if (num != num) {
-        strcpy(c, "nan");
-        c += 3;
+        strcpy(chars, "nan");
+        chars += 3;
     }
     else if (num == INFINITY) {
-        strcpy(c, "inf");
-        c += 3;
+        strcpy(chars, "inf");
+        chars += 3;
     }
     else if (bits << 1 == 0) {
-        *c++ = '0';
+        *chars++ = '0';
     }
     else {
         //approximate power of 10 from power of 2 encoded within the double
@@ -196,12 +195,12 @@ int dtoa(char* chars, double num, int requestedDigits) {
         //generate all significant digits
         do {
             if (digitsAfterDot == 1) {
-                *c++ = '.';
+                *chars++ = '.';
             }
 
             double digit = floor(scaledNum);
             scaledNum -= digit;
-            *c++ = (char)digit + '0';
+            *chars++ = (char)digit + '0';
 
             acceptableError *= 10.0;
             scaledNum *= 10.0;
@@ -211,27 +210,27 @@ int dtoa(char* chars, double num, int requestedDigits) {
 
         //print power of 10 if not using fixed point formatting
         if (requestedDigits < 0) {
-            *c++ = 'e';
+            *chars++ = 'e';
 
             if (power < 0) {
-                *c++ = '-';
+                *chars++ = '-';
                 power = -power;
             }
 
             //generate digits backwards
-            char *cc = c;
+            char *cc = chars;
 
             do {
-                *c++ = '0' + power % 10;
+                *chars++ = '0' + power % 10;
                 power /= 10;
             } while (power != 0);
 
             //swap first and last digit
-            int temp = *(c-1);
-            *(c-1) = *cc;
+            int temp = *(chars-1);
+            *(chars-1) = *cc;
             *cc = temp;
         }
     }
 
-    return c - chars;
+    return chars;
 }
