@@ -1,6 +1,6 @@
 # num-to-string
 
-I created a minimal and efficient, but lossy, implementation of dtoa for use in WebAssembly.  Cost size has priority over execution speed and correctness.  In this code, I call math.h's pow() function to calculate powers of 10 for integer powers, but in production code these powers would be cached.
+I created a minimal and efficient, but lossy, implementation of dtoa for use in WebAssembly.  Code size has priority over execution speed and correctness.  In this code, I call math.h's pow() function to calculate powers of 10 for integer powers, but in production code these powers would be cached.
 
 I took a few ideas from Florian Loitsch's paper "Printing Floating-Point Numbers Quickly and Accurately with Integers"
 https://drive.google.com/file/d/0BwvYOx00EwKmcTZUM0Q4VW1DTHc/view.
